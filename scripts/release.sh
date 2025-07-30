@@ -351,7 +351,7 @@ fi
 #
 # Examples:
 #   Successful push → "Enumerating objects: 5, done."
-#   New tag creation → "To github.com:TakanariShimbo/npx-datetime-mcp-server.git * [new tag] v0.1.4 -> v0.1.4"
+#   New tag creation → "To github.com:TakanariShimbo/rosbridge-mcp-server.git * [new tag] v0.1.4 -> v0.1.4"
 #   Authentication required → Prompts for GitHub username/token
 #   Network error → "fatal: unable to access 'https://github.com/...': Could not resolve host"
 #   Push triggers GitHub Actions → Workflow starts automatically for tag v0.1.4
@@ -362,7 +362,7 @@ fi
 #
 # 例:
 #   成功したプッシュ → "Enumerating objects: 5, done."
-#   新しいタグ作成 → "To github.com:TakanariShimbo/npx-datetime-mcp-server.git * [new tag] v0.1.4 -> v0.1.4"
+#   新しいタグ作成 → "To github.com:TakanariShimbo/rosbridge-mcp-server.git * [new tag] v0.1.4 -> v0.1.4"
 #   認証が必要 → GitHubユーザー名/トークンのプロンプト
 #   ネットワークエラー → "fatal: unable to access 'https://github.com/...': Could not resolve host"
 #   プッシュでGitHub Actionsがトリガー → タグv0.1.4でワークフローが自動開始
@@ -382,8 +382,8 @@ git push origin v$FINAL_VERSION
 #   "Release process completed for version 0.1.4"
 #   "The GitHub workflow will now build and publish the package to npm"
 #   "Check the Actions tab in your GitHub repository for progress"
-#   User should visit: https://github.com/TakanariShimbo/npx-datetime-mcp-server/actions
-#   Package will be available at: https://pypi.org/project/uvx-datetime-mcp-server/
+#   User should visit: https://github.com/TakanariShimbo/rosbridge-mcp-server/actions
+#   Package will be available at: https://pypi.org/project/takanarishimbo-rosbridge-mcp-server/
 #
 # 11. 成功メッセージ
 #
@@ -393,8 +393,8 @@ git push origin v$FINAL_VERSION
 #   "バージョン0.1.4のリリースプロセスが完了しました"
 #   "GitHubワークフローがパッケージをビルドしてnpmに公開します"
 #   "進捗状況はGitHubリポジトリのActionsタブで確認してください"
-#   ユーザーが訪問すべき場所: https://github.com/TakanariShimbo/datetime-mcp-server/actions
-#   パッケージの公開場所: https://pypi.org/project/uvx-datetime-mcp-server/
+#   ユーザーが訪問すべき場所: https://github.com/TakanariShimbo/rosbridge-mcp-server/actions
+#   パッケージの公開場所: https://pypi.org/project/takanarishimbo-rosbridge-mcp-server/
 # =====================
 echo "Release process completed for version $FINAL_VERSION"
 echo "The GitHub workflow will now build and publish the package to PyPI"
