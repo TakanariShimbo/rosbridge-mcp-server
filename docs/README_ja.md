@@ -134,13 +134,13 @@ ROS トピックにメッセージを公開
 4. **サーバーを実行**
 
    ```bash
-   uv run rosbridge-mcp-server
+   uv run takanarishimbo-rosbridge-mcp-server
    ```
 
 5. **MCP Inspector でテスト（オプション）**
 
    ```bash
-   npx @modelcontextprotocol/inspector uv run rosbridge-mcp-server
+   npx @modelcontextprotocol/inspector uv run takanarishimbo-rosbridge-mcp-server
    ```
 
 ## PyPI への公開

@@ -134,13 +134,13 @@ Example usage:
 4. **Run the server**
 
    ```bash
-   uv run rosbridge-mcp-server
+   uv run takanarishimbo-rosbridge-mcp-server
    ```
 
 5. **Test with MCP Inspector (optional)**
 
    ```bash
-   npx @modelcontextprotocol/inspector uv run rosbridge-mcp-server
+   npx @modelcontextprotocol/inspector uv run takanarishimbo-rosbridge-mcp-server
    ```
 
 ## Publishing to PyPI
