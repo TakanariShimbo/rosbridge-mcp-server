@@ -22,7 +22,7 @@ Choose one of these examples based on your needs:
   "mcpServers": {
     "rosbridge": {
       "command": "uvx",
-      "args": ["rosbridge-mcp-server"]
+      "args": ["takanarishimbo-rosbridge-mcp-server"]
     }
   }
 }
@@ -35,7 +35,7 @@ Choose one of these examples based on your needs:
   "mcpServers": {
     "rosbridge": {
       "command": "uvx",
-      "args": ["rosbridge-mcp-server"],
+      "args": ["takanarishimbo-rosbridge-mcp-server"],
       "env": {
         "ROSBRIDGE_HOST": "192.168.1.100",
         "ROSBRIDGE_PORT": "9090"
@@ -71,6 +71,7 @@ The server can be configured using environment variables:
 The rosbridge server host (default: "localhost")
 
 Examples:
+
 - `localhost`: Local rosbridge
 - `192.168.1.100`: Remote IP address
 - `ros-robot.local`: Hostname
@@ -102,8 +103,8 @@ Example usage:
     "topic": "/cmd_vel",
     "message_type": "geometry_msgs/Twist",
     "message": {
-      "linear": {"x": 0.5, "y": 0.0, "z": 0.0},
-      "angular": {"x": 0.0, "y": 0.0, "z": 0.1}
+      "linear": { "x": 0.5, "y": 0.0, "z": 0.0 },
+      "angular": { "x": 0.0, "y": 0.0, "z": 0.1 }
     }
   }
 }
@@ -114,7 +115,7 @@ Example usage:
 1. **Clone this repository**
 
    ```bash
-   git clone https://github.com/yourusername/rosbridge-mcp-server.git
+   git clone https://github.com/TakanariShimbo/rosbridge-mcp-server.git
    cd rosbridge-mcp-server
    ```
 
@@ -161,7 +162,7 @@ This project uses PyPI's Trusted Publishers feature for secure, token-less publi
    - Click "Add a new publisher"
    - Select "GitHub" as the publisher
    - Fill in:
-     - **Owner**: `yourusername` (your GitHub username/org)
+     - **Owner**: `TakanariShimbo` (your GitHub username/org)
      - **Repository**: `rosbridge-mcp-server`
      - **Workflow name**: `pypi-publish.yml`
      - **Environment**: `pypi` (optional but recommended)
@@ -281,94 +282,6 @@ rosbridge-mcp-server/
 ├── README.md                    # This file
 └── .gitignore                   # Git ignore file
 ```
-
-## ROS Message Examples
-
-### geometry_msgs/Twist (Robot velocity)
-
-```json
-{
-  "topic": "/cmd_vel",
-  "message_type": "geometry_msgs/Twist",
-  "message": {
-    "linear": {"x": 1.0, "y": 0.0, "z": 0.0},
-    "angular": {"x": 0.0, "y": 0.0, "z": 0.5}
-  }
-}
-```
-
-### std_msgs/String (Simple text)
-
-```json
-{
-  "topic": "/chatter",
-  "message_type": "std_msgs/String",
-  "message": {
-    "data": "Hello, ROS!"
-  }
-}
-```
-
-### sensor_msgs/JointState (Joint positions)
-
-```json
-{
-  "topic": "/joint_states",
-  "message_type": "sensor_msgs/JointState",
-  "message": {
-    "name": ["joint1", "joint2", "joint3"],
-    "position": [0.0, 1.57, -1.57],
-    "velocity": [0.0, 0.0, 0.0],
-    "effort": [0.0, 0.0, 0.0]
-  }
-}
-```
-
-## Troubleshooting
-
-### Connection Failed
-
-If you see "Failed to connect to rosbridge":
-
-1. **Verify rosbridge is running**
-   ```bash
-   rosnode list | grep rosbridge
-   ```
-
-2. **Check rosbridge port**
-   ```bash
-   rostopic list  # Should show available topics
-   ```
-
-3. **Test rosbridge connection**
-   ```bash
-   # Install rosbridge client
-   pip install roslibpy
-   
-   # Test connection
-   python -c "import roslibpy; client = roslibpy.Ros(host='localhost', port=9090); client.run(); print('Connected!' if client.is_connected else 'Failed')"
-   ```
-
-4. **Check firewall settings**
-   - Ensure port 9090 (or your custom port) is open
-   - No firewall blocking WebSocket connections
-
-### Message Publishing Issues
-
-1. **Verify topic exists**
-   ```bash
-   rostopic list | grep your_topic_name
-   ```
-
-2. **Check message type**
-   ```bash
-   rostopic info /your_topic_name
-   ```
-
-3. **Monitor topic**
-   ```bash
-   rostopic echo /your_topic_name
-   ```
 
 ## License
 

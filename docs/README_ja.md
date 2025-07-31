@@ -2,13 +2,13 @@
 
 # Rosbridge MCP Server
 
-Model Context Protocol (MCP) サーバーで、rosbridgeを介してROSトピックにメッセージを公開するツールを提供します。これはMCPサーバーとROSの統合を示すPython実装です。
+Model Context Protocol (MCP) サーバーで、rosbridge を介して ROS トピックにメッセージを公開するツールを提供します。これは MCP サーバーと ROS の統合を示す Python 実装です。
 
 ## 機能
 
-- rosbridge WebSocketを介して任意のROSトピックにメッセージを公開
-- 環境変数による設定可能なrosbridge接続
-- 任意のROSメッセージタイプをサポート
+- rosbridge WebSocket を介して任意の ROS トピックにメッセージを公開
+- 環境変数による設定可能な rosbridge 接続
+- 任意の ROS メッセージタイプをサポート
 - シンプルなツール: `publish_topic`
 
 ## 使用方法
@@ -22,20 +22,20 @@ Model Context Protocol (MCP) サーバーで、rosbridgeを介してROSトピッ
   "mcpServers": {
     "rosbridge": {
       "command": "uvx",
-      "args": ["rosbridge-mcp-server"]
+      "args": ["takanarishimbo-rosbridge-mcp-server"]
     }
   }
 }
 ```
 
-**カスタムrosbridgeホスト：**
+**カスタム rosbridge ホスト：**
 
 ```json
 {
   "mcpServers": {
     "rosbridge": {
       "command": "uvx",
-      "args": ["rosbridge-mcp-server"],
+      "args": ["takanarishimbo-rosbridge-mcp-server"],
       "env": {
         "ROSBRIDGE_HOST": "192.168.1.100",
         "ROSBRIDGE_PORT": "9090"
@@ -45,14 +45,14 @@ Model Context Protocol (MCP) サーバーで、rosbridgeを介してROSトピッ
 }
 ```
 
-**リモートROSシステム：**
+**リモート ROS システム：**
 
 ```json
 {
   "mcpServers": {
     "rosbridge": {
       "command": "uvx",
-      "args": ["rosbridge-mcp-server"],
+      "args": ["takanarishimbo-rosbridge-mcp-server"],
       "env": {
         "ROSBRIDGE_HOST": "ros-robot.local",
         "ROSBRIDGE_PORT": "9091"
@@ -68,30 +68,31 @@ Model Context Protocol (MCP) サーバーで、rosbridgeを介してROSトピッ
 
 ### `ROSBRIDGE_HOST`
 
-rosbridgeサーバーのホスト（デフォルト: "localhost"）
+rosbridge サーバーのホスト（デフォルト: "localhost"）
 
 例：
-- `localhost`: ローカルのrosbridge
-- `192.168.1.100`: リモートIPアドレス
+
+- `localhost`: ローカルの rosbridge
+- `192.168.1.100`: リモート IP アドレス
 - `ros-robot.local`: ホスト名
 
 ### `ROSBRIDGE_PORT`
 
-rosbridgeサーバーのポート（デフォルト: "9090"）
+rosbridge サーバーのポート（デフォルト: "9090"）
 
-標準的なrosbridge WebSocketポートは9090です。
+標準的な rosbridge WebSocket ポートは 9090 です。
 
 ## 利用可能なツール
 
 ### `publish_topic`
 
-ROSトピックにメッセージを公開
+ROS トピックにメッセージを公開
 
 パラメータ：
 
-- `topic`（必須）：ROSトピック名（例: "/cmd_vel"）
-- `message_type`（必須）：ROSメッセージタイプ（例: "geometry_msgs/Twist"）
-- `message`（必須）：JSONオブジェクトとしてのメッセージデータ
+- `topic`（必須）：ROS トピック名（例: "/cmd_vel"）
+- `message_type`（必須）：ROS メッセージタイプ（例: "geometry_msgs/Twist"）
+- `message`（必須）：JSON オブジェクトとしてのメッセージデータ
 
 使用例：
 
@@ -102,8 +103,8 @@ ROSトピックにメッセージを公開
     "topic": "/cmd_vel",
     "message_type": "geometry_msgs/Twist",
     "message": {
-      "linear": {"x": 0.5, "y": 0.0, "z": 0.0},
-      "angular": {"x": 0.0, "y": 0.0, "z": 0.1}
+      "linear": { "x": 0.5, "y": 0.0, "z": 0.0 },
+      "angular": { "x": 0.0, "y": 0.0, "z": 0.1 }
     }
   }
 }
@@ -114,17 +115,17 @@ ROSトピックにメッセージを公開
 1. **このリポジトリをクローン**
 
    ```bash
-   git clone https://github.com/yourusername/rosbridge-mcp-server.git
+   git clone https://github.com/TakanariShimbo/rosbridge-mcp-server.git
    cd rosbridge-mcp-server
    ```
 
-2. **uvを使用して依存関係をインストール**
+2. **uv を使用して依存関係をインストール**
 
    ```bash
    uv sync
    ```
 
-3. **ROSシステムでrosbridgeを起動**
+3. **ROS システムで rosbridge を起動**
 
    ```bash
    roslaunch rosbridge_server rosbridge_websocket.launch
@@ -136,19 +137,19 @@ ROSトピックにメッセージを公開
    uv run rosbridge-mcp-server
    ```
 
-5. **MCP Inspectorでテスト（オプション）**
+5. **MCP Inspector でテスト（オプション）**
 
    ```bash
    npx @modelcontextprotocol/inspector uv run rosbridge-mcp-server
    ```
 
-## PyPIへの公開
+## PyPI への公開
 
-このプロジェクトはGitHub Actions経由で安全でトークンレスな公開のために、PyPIのTrusted Publishers機能を使用しています。
+このプロジェクトは GitHub Actions 経由で安全でトークンレスな公開のために、PyPI の Trusted Publishers 機能を使用しています。
 
-### 1. PyPI Trusted Publisherの設定
+### 1. PyPI Trusted Publisher の設定
 
-1. **PyPIにログイン**（必要に応じてアカウントを作成）
+1. **PyPI にログイン**（必要に応じてアカウントを作成）
 
    - https://pypi.org/ にアクセス
 
@@ -157,45 +158,45 @@ ROSトピックにメッセージを公開
    - アカウント設定に移動
    - "Publishing"をクリック、または https://pypi.org/manage/account/publishing/ にアクセス
 
-3. **GitHubパブリッシャーを追加**
+3. **GitHub パブリッシャーを追加**
    - "Add a new publisher"をクリック
    - パブリッシャーとして"GitHub"を選択
    - 以下を入力：
-     - **Owner**: `yourusername`（GitHubユーザー名/組織）
+     - **Owner**: `TakanariShimbo`（GitHub ユーザー名/組織）
      - **Repository**: `rosbridge-mcp-server`
      - **Workflow name**: `pypi-publish.yml`
      - **Environment**: `pypi`（オプションだが推奨）
    - "Add"をクリック
 
-### 2. GitHub環境の設定（推奨）
+### 2. GitHub 環境の設定（推奨）
 
 1. **リポジトリ設定に移動**
 
-   - GitHubリポジトリに移動
+   - GitHub リポジトリに移動
    - "Settings" → "Environments"をクリック
 
-2. **PyPI環境を作成**
+2. **PyPI 環境を作成**
    - "New environment"をクリック
    - 名前: `pypi`
    - 保護ルールを設定（オプション）：
      - 必要なレビュアーを追加
      - 特定のブランチ/タグに制限
 
-### 3. GitHubパーソナルアクセストークンの設定（リリーススクリプト用）
+### 3. GitHub パーソナルアクセストークンの設定（リリーススクリプト用）
 
-リリーススクリプトはGitHubにプッシュする必要があるため、GitHubトークンが必要です：
+リリーススクリプトは GitHub にプッシュする必要があるため、GitHub トークンが必要です：
 
-1. **GitHubパーソナルアクセストークンを作成**
+1. **GitHub パーソナルアクセストークンを作成**
 
    - https://github.com/settings/tokens にアクセス
    - "Generate new token" → "Generate new token (classic)"をクリック
-   - 有効期限を設定（推奨：90日またはカスタム）
+   - 有効期限を設定（推奨：90 日またはカスタム）
    - スコープを選択：
      - ✅ `repo`（プライベートリポジトリの完全な制御）
    - "Generate token"をクリック
    - 生成されたトークンをコピー（`ghp_`で始まる）
 
-2. **Gitにトークンを設定**
+2. **Git にトークンを設定**
 
    ```bash
    # オプション1: GitHub CLIを使用（推奨）
@@ -229,23 +230,23 @@ chmod +x scripts/release.sh
 
 ### 5. 公開の確認
 
-1. **GitHub Actionsを確認**
+1. **GitHub Actions を確認**
 
    - リポジトリの"Actions"タブに移動
    - "Publish to PyPI"ワークフローが正常に完了したことを確認
 
-2. **PyPIパッケージを確認**
+2. **PyPI パッケージを確認**
    - https://pypi.org/project/rosbridge-mcp-server/ にアクセス
    - または実行: `pip show rosbridge-mcp-server`
 
 ### リリースプロセスフロー
 
 1. `release.sh`スクリプトがすべてのファイルのバージョンを更新
-2. gitコミットとタグを作成
-3. GitHubにプッシュ
-4. 新しいタグでGitHub Actionsワークフローがトリガー
-5. ワークフローがOIDCを使用してPyPIで認証（トークン不要！）
-6. ワークフローがプロジェクトをビルドしてPyPIに公開
+2. git コミットとタグを作成
+3. GitHub にプッシュ
+4. 新しいタグで GitHub Actions ワークフローがトリガー
+5. ワークフローが OIDC を使用して PyPI で認証（トークン不要！）
+6. ワークフローがプロジェクトをビルドして PyPI に公開
 7. パッケージが`pip install`または`uvx`経由でグローバルに利用可能に
 
 ## コード品質
@@ -283,94 +284,6 @@ rosbridge-mcp-server/
 │   └── README_ja.md             # このファイル
 └── .gitignore                   # Git無視ファイル
 ```
-
-## ROSメッセージの例
-
-### geometry_msgs/Twist（ロボットの速度）
-
-```json
-{
-  "topic": "/cmd_vel",
-  "message_type": "geometry_msgs/Twist",
-  "message": {
-    "linear": {"x": 1.0, "y": 0.0, "z": 0.0},
-    "angular": {"x": 0.0, "y": 0.0, "z": 0.5}
-  }
-}
-```
-
-### std_msgs/String（シンプルなテキスト）
-
-```json
-{
-  "topic": "/chatter",
-  "message_type": "std_msgs/String",
-  "message": {
-    "data": "Hello, ROS!"
-  }
-}
-```
-
-### sensor_msgs/JointState（ジョイント位置）
-
-```json
-{
-  "topic": "/joint_states",
-  "message_type": "sensor_msgs/JointState",
-  "message": {
-    "name": ["joint1", "joint2", "joint3"],
-    "position": [0.0, 1.57, -1.57],
-    "velocity": [0.0, 0.0, 0.0],
-    "effort": [0.0, 0.0, 0.0]
-  }
-}
-```
-
-## トラブルシューティング
-
-### 接続失敗
-
-"Failed to connect to rosbridge"が表示される場合：
-
-1. **rosbridgeが実行されていることを確認**
-   ```bash
-   rosnode list | grep rosbridge
-   ```
-
-2. **rosbridgeポートを確認**
-   ```bash
-   rostopic list  # 利用可能なトピックが表示されるはず
-   ```
-
-3. **rosbridge接続をテスト**
-   ```bash
-   # rosbridgeクライアントをインストール
-   pip install roslibpy
-   
-   # 接続をテスト
-   python -c "import roslibpy; client = roslibpy.Ros(host='localhost', port=9090); client.run(); print('Connected!' if client.is_connected else 'Failed')"
-   ```
-
-4. **ファイアウォール設定を確認**
-   - ポート9090（またはカスタムポート）が開いていることを確認
-   - WebSocket接続をブロックするファイアウォールがないことを確認
-
-### メッセージ公開の問題
-
-1. **トピックが存在することを確認**
-   ```bash
-   rostopic list | grep your_topic_name
-   ```
-
-2. **メッセージタイプを確認**
-   ```bash
-   rostopic info /your_topic_name
-   ```
-
-3. **トピックをモニタリング**
-   ```bash
-   rostopic echo /your_topic_name
-   ```
 
 ## ライセンス
 
