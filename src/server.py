@@ -26,9 +26,8 @@ Example:
 """
 
 import asyncio
-import json
 import os
-from typing import Any, Dict
+from typing import Any
 
 import roslibpy
 from mcp.server import Server
@@ -127,68 +126,12 @@ Examples:
   プロトコル: Model Context Protocol (MCP)
 """
 app = Server("rosbridge-mcp-server")
-
-# ROS client stored at module level (not global)
-_ros_client = None
-
-"""
-4. ROS Client Management
-
-Manage the connection to rosbridge
-
-Examples:
-  get_ros_client() → Returns connected ROS client
-  Connection successful → "Connected to rosbridge at localhost:9090"
-  Connection failed → ConnectionError: "Failed to connect to rosbridge"
-  Reconnection → Creates new client if previous disconnected
-
-4. ROSクライアント管理
-
-rosbridgeへの接続を管理
-
-例:
-  get_ros_client() → 接続されたROSクライアントを返す
-  接続成功 → "Connected to rosbridge at localhost:9090"
-  接続失敗 → ConnectionError: "Failed to connect to rosbridge"
-  再接続 → 前回切断された場合は新しいクライアントを作成
-"""
-
-
-async def get_ros_client():
-    """
-    Get or create a ROS client connection.
-    
-    Returns a connected roslibpy client or raises ConnectionError.
-    """
-    # Access module-level variable
-    if _ros_client is None or not _ros_client.is_connected:
-        try:
-            # Create new client
-            client = roslibpy.Ros(host=ROSBRIDGE_HOST, port=ROSBRIDGE_PORT)
-            
-            # Run client.run() in a separate thread to avoid blocking
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, client.run)
-            
-            # Wait a bit for connection
-            await asyncio.sleep(0.5)
-            
-            if client.is_connected:
-                print(f"Connected to rosbridge at {ROSBRIDGE_HOST}:{ROSBRIDGE_PORT}")
-                # Update module-level variable
-                globals()['_ros_client'] = client
-            else:
-                raise ConnectionError("Failed to connect to rosbridge")
-                
-        except Exception as e:
-            print(f"Failed to connect to rosbridge: {e}")
-            raise
-    
-    return _ros_client
+ros = roslibpy.Ros(host=ROSBRIDGE_HOST, port=ROSBRIDGE_PORT)
+ros.run()
 
 
 """
-5. Topic Publishing Function
+4. Topic Publishing Function
 
 Publish messages to ROS topics
 
@@ -198,7 +141,7 @@ Examples:
   Invalid topic → Error message
   Connection error → "Failed to publish to topic '/topic': Connection error"
 
-5. トピック公開関数
+4. トピック公開関数
 
 ROSトピックにメッセージを公開
 
@@ -210,43 +153,40 @@ ROSトピックにメッセージを公開
 """
 
 
-async def publish_topic(topic: str, message_type: str, message: Dict[str, Any]) -> str:
+async def publish_topic(topic: str, message_type: str, message: dict[str, Any]) -> str:
     """
     Publish a message to a ROS topic.
-    
+
     Args:
         topic: The ROS topic name
         message_type: The ROS message type
         message: The message data as a dictionary
-        
+
     Returns:
         A status message indicating success or failure
     """
     try:
-        # Get ROS client
-        ros = await get_ros_client()
-        
         # Create topic
         t = roslibpy.Topic(ros, topic, message_type)
-        
+
         # Advertise
         t.advertise()
-        
+
         # Small delay to ensure advertise is processed
         await asyncio.sleep(0.1)
-        
+
         # Publish message
         msg = roslibpy.Message(message)
         t.publish(msg)
-        
+
         # Small delay to ensure publish is processed
         await asyncio.sleep(0.1)
-        
+
         # Unadvertise
         t.unadvertise()
-        
+
         return f"Successfully published message to topic '{topic}' with type '{message_type}'"
-        
+
     except Exception as e:
         error_msg = f"Failed to publish to topic '{topic}': {str(e)}"
         print(error_msg)
@@ -254,7 +194,7 @@ async def publish_topic(topic: str, message_type: str, message: Dict[str, Any]) 
 
 
 """
-6. Tool List Handler
+5. Tool List Handler
 
 Handle requests to list available tools
 
@@ -264,7 +204,7 @@ Examples:
   Tool count: 1
   This handler responds to MCP clients asking what tools are available
 
-6. ツールリストハンドラー
+5. ツールリストハンドラー
 
 利用可能なツールをリストするリクエストを処理
 
@@ -280,7 +220,7 @@ Examples:
 async def list_tools() -> list[Tool]:
     """
     List all available tools.
-    
+
     Returns a list of tools that this MCP server provides.
     Currently provides only the publish_topic tool.
     """
@@ -288,7 +228,7 @@ async def list_tools() -> list[Tool]:
 
 
 """
-7. Tool Call Handler
+6. Tool Call Handler
 
 Set up the request handler for tool calls
 
@@ -298,7 +238,7 @@ Examples:
   Request: { name: "unknown_tool" } → Error: "Unknown tool: unknown_tool"
   Connection error → Error: "Failed to publish to topic..."
 
-7. ツール呼び出しハンドラー
+6. ツール呼び出しハンドラー
 
 ツール呼び出しのリクエストハンドラーを設定
 
@@ -314,13 +254,13 @@ Examples:
 async def call_tool(name: str, arguments: dict) -> list:
     """
     Handle tool execution requests.
-    
+
     Process tool calls from MCP clients and publish messages to ROS topics.
-    
+
     Args:
         name: The name of the tool to execute
         arguments: Tool-specific arguments (topic, message_type, message)
-        
+
     Returns:
         A list containing the tool execution result or error message
     """
@@ -328,7 +268,7 @@ async def call_tool(name: str, arguments: dict) -> list:
         topic = arguments.get("topic")
         message_type = arguments.get("message_type")
         message = arguments.get("message")
-        
+
         if not all([topic, message_type, message]):
             return [
                 {
@@ -337,10 +277,10 @@ async def call_tool(name: str, arguments: dict) -> list:
                     "isError": True,
                 }
             ]
-        
+
         result = await publish_topic(topic, message_type, message)
         is_error = result.startswith("Failed")
-        
+
         return [
             {
                 "type": "text",
@@ -348,7 +288,7 @@ async def call_tool(name: str, arguments: dict) -> list:
                 "isError": is_error,
             }
         ]
-    
+
     else:
         return [
             {
@@ -360,112 +300,71 @@ async def call_tool(name: str, arguments: dict) -> list:
 
 
 """
-8. Cleanup Function
-
-Clean up resources on shutdown
-
-Examples:
-  Normal shutdown → "Disconnected from rosbridge"
-  Already disconnected → No action
-  This ensures proper cleanup of ROS connections
-
-8. クリーンアップ関数
-
-シャットダウン時にリソースをクリーンアップ
-
-例:
-  通常のシャットダウン → "Disconnected from rosbridge"
-  既に切断済み → アクションなし
-  これはROS接続の適切なクリーンアップを保証
-"""
-
-
-async def cleanup():
-    """
-    Clean up resources.
-    
-    Ensures the ROS client connection is properly terminated.
-    """
-    if _ros_client and _ros_client.is_connected:
-        _ros_client.terminate()
-        # Clear the module-level variable
-        globals()['_ros_client'] = None
-        print("Disconnected from rosbridge")
-
-
-"""
-9. Server Startup Function
+7. Server Startup Function
 
 Initialize and run the MCP server with stdio transport
 
 Examples:
   Normal startup → "Rosbridge MCP Server running on stdio"
-  Connection info → "Connecting to rosbridge at localhost:9090"
   Transport: stdio (communicates via stdin/stdout)
-  Shutdown → Cleanup is called automatically
+  Connection error → Process exits with appropriate error
 
-9. サーバー起動関数
+7. サーバー起動関数
 
 stdioトランスポートでMCPサーバーを初期化して実行
 
 例:
   通常の起動 → "Rosbridge MCP Server running on stdio"
-  接続情報 → "Connecting to rosbridge at localhost:9090"
   トランスポート: stdio (stdin/stdout経由で通信)
-  シャットダウン → クリーンアップが自動的に呼び出される
+  接続エラー → プロセスは適切なエラーで終了
 """
 
 
 async def run_server():
     """
     Initialize and run the MCP server with stdio transport.
-    
+
     Sets up the stdio communication channels, prints startup information,
     and starts the MCP server. The server communicates via standard input/output streams.
     """
     print("Rosbridge MCP Server running on stdio")
     print(f"Connecting to rosbridge at {ROSBRIDGE_HOST}:{ROSBRIDGE_PORT}")
-    
+
     async with stdio_server() as (read_stream, write_stream):
-        try:
-            await app.run(read_stream, write_stream, app.create_initialization_options())
-        finally:
-            await cleanup()
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 """
-10. Server Execution
+8. Server Execution
 
 Execute the server when run as a script
 
 Examples:
   Direct execution: python server.py
   Via uvx: uvx rosbridge-mcp-server
-  With environment: ROSBRIDGE_HOST=192.168.1.100 python server.py
-  Keyboard interrupt → "Server shutdown requested"
+  With environment: ROSBRIDGE_HOST=localhost ROSBRIDGE_PORT=9090 python server.py
+  Fatal error → Exits with appropriate error code
 
-10. サーバー実行
+8. サーバー実行
 
 スクリプトとして実行されたときにサーバーを実行
 
 例:
   直接実行: python server.py
   uvx経由: uvx rosbridge-mcp-server
-  環境変数付き: ROSBRIDGE_HOST=192.168.1.100 python server.py
-  キーボード割り込み → "Server shutdown requested"
+  環境変数付き: ROSBRIDGE_HOST=localhost ROSBRIDGE_PORT=9090 python server.py
+  致命的なエラー → 適切なエラーコードで終了
 """
 
 
 def main():
     """
     Main entry point for the server.
-    
+
     Starts the MCP server and handles any startup errors.
     """
-    try:
-        asyncio.run(run_server())
-    except KeyboardInterrupt:
-        print("\nServer shutdown requested")
-    except Exception as e:
-        print(f"Server error: {e}")
-        raise
+    asyncio.run(run_server())
+
+
+if __name__ == "__main__":
+    main()
