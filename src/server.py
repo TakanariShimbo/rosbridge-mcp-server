@@ -27,12 +27,29 @@ Example:
 
 import asyncio
 import os
-from typing import Any
 
 import roslibpy
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool
+
+from .tools import (
+    LIST_TOPICS_TOOL,
+    LIST_ACTIONS_TOOL,
+    LIST_SERVICES_TOOL,
+    GET_TOPIC_INFO_TOOL,
+    PUBLISH_TOPIC_TOOL,
+    PUBLISH_ACTION_TOOL,
+    CANCEL_ACTION_TOOL,
+    PUBLISH_SERVICE_TOOL,
+    list_topics,
+    list_actions,
+    list_services,
+    get_topic_info,
+    publish_topic,
+    publish_action,
+    cancel_action,
+    publish_service,
+)
 
 # Server version
 
@@ -61,53 +78,7 @@ ROSBRIDGE_HOST = os.environ.get("ROSBRIDGE_HOST", "localhost")
 ROSBRIDGE_PORT = int(os.environ.get("ROSBRIDGE_PORT", "9090"))
 
 """
-2. Tool Definition
-
-Define the publish_topic tool with its schema
-
-Examples:
-  Tool name: "publish_topic"
-  Input: { topic: "/cmd_vel", message_type: "geometry_msgs/Twist", message: {...} }
-  Input: { topic: "/chatter", message_type: "std_msgs/String", message: {data: "Hello"} }
-  Required: topic, message_type, message
-  ROS message types: Any valid ROS message type (e.g., "geometry_msgs/Twist", "std_msgs/String")
-
-2. ツール定義
-
-publish_topicツールとそのスキーマを定義
-
-例:
-  ツール名: "publish_topic"
-  入力: { topic: "/cmd_vel", message_type: "geometry_msgs/Twist", message: {...} }
-  入力: { topic: "/chatter", message_type: "std_msgs/String", message: {data: "Hello"} }
-  必須: topic, message_type, message
-  ROSメッセージタイプ: 有効なROSメッセージタイプ (例: "geometry_msgs/Twist", "std_msgs/String")
-"""
-PUBLISH_TOPIC_TOOL = Tool(
-    name="publish_topic",
-    description="Publish a message to a ROS topic via rosbridge",
-    inputSchema={
-        "type": "object",
-        "properties": {
-            "topic": {
-                "type": "string",
-                "description": "The ROS topic name (e.g., '/cmd_vel')",
-            },
-            "message_type": {
-                "type": "string",
-                "description": "The ROS message type (e.g., 'geometry_msgs/Twist')",
-            },
-            "message": {
-                "type": "object",
-                "description": "The message data as a JSON object",
-            },
-        },
-        "required": ["topic", "message_type", "message"],
-    },
-)
-
-"""
-3. Server Initialization
+2. Server Initialization
 
 Create MCP server instance with metadata
 
@@ -116,7 +87,7 @@ Examples:
   Version: "0.1.0"
   Protocol: Model Context Protocol (MCP)
 
-3. サーバー初期化
+2. サーバー初期化
 
 メタデータを持つMCPサーバーインスタンスを作成
 
@@ -131,122 +102,67 @@ ros.run()
 
 
 """
-4. Topic Publishing Function
-
-Publish messages to ROS topics
-
-Examples:
-  publish_topic("/cmd_vel", "geometry_msgs/Twist", {linear: {x: 0.5}}) → Success message
-  publish_topic("/chatter", "std_msgs/String", {data: "Hello"}) → Success message
-  Invalid topic → Error message
-  Connection error → "Failed to publish to topic '/topic': Connection error"
-
-4. トピック公開関数
-
-ROSトピックにメッセージを公開
-
-例:
-  publish_topic("/cmd_vel", "geometry_msgs/Twist", {linear: {x: 0.5}}) → 成功メッセージ
-  publish_topic("/chatter", "std_msgs/String", {data: "Hello"}) → 成功メッセージ
-  無効なトピック → エラーメッセージ
-  接続エラー → "Failed to publish to topic '/topic': Connection error"
-"""
-
-
-async def publish_topic(topic: str, message_type: str, message: dict[str, Any]) -> str:
-    """
-    Publish a message to a ROS topic.
-
-    Args:
-        topic: The ROS topic name
-        message_type: The ROS message type
-        message: The message data as a dictionary
-
-    Returns:
-        A status message indicating success or failure
-    """
-    try:
-        # Create topic
-        t = roslibpy.Topic(ros, topic, message_type)
-
-        # Advertise
-        t.advertise()
-
-        # Small delay to ensure advertise is processed
-        await asyncio.sleep(0.1)
-
-        # Publish message
-        msg = roslibpy.Message(message)
-        t.publish(msg)
-
-        # Small delay to ensure publish is processed
-        await asyncio.sleep(0.1)
-
-        # Unadvertise
-        t.unadvertise()
-
-        return f"Successfully published message to topic '{topic}' with type '{message_type}'"
-
-    except Exception as e:
-        error_msg = f"Failed to publish to topic '{topic}': {str(e)}"
-        print(error_msg)
-        return error_msg
-
-
-"""
-5. Tool List Handler
+3. Tool List Handler
 
 Handle requests to list available tools
 
 Examples:
-  Request: ListToolsRequest → Response: { tools: [PUBLISH_TOPIC_TOOL] }
-  Available tools: publish_topic
-  Tool count: 1
+  Request: ListToolsRequest → Response: { tools: [PUBLISH_TOPIC_TOOL, LIST_TOPICS_TOOL, ...] }
+  Available tools: publish_topic, list_topics, list_actions, list_services
+  Tool count: 4
   This handler responds to MCP clients asking what tools are available
 
-5. ツールリストハンドラー
+3. ツールリストハンドラー
 
 利用可能なツールをリストするリクエストを処理
 
 例:
-  リクエスト: ListToolsRequest → レスポンス: { tools: [PUBLISH_TOPIC_TOOL] }
-  利用可能なツール: publish_topic
-  ツール数: 1
+  リクエスト: ListToolsRequest → レスポンス: { tools: [PUBLISH_TOPIC_TOOL, LIST_TOPICS_TOOL, ...] }
+  利用可能なツール: publish_topic, list_topics, list_actions, list_services
+  ツール数: 4
   このハンドラーは利用可能なツールを尋ねるMCPクライアントに応答
 """
 
 
 @app.list_tools()
-async def list_tools() -> list[Tool]:
+async def list_tools() -> list:
     """
     List all available tools.
 
     Returns a list of tools that this MCP server provides.
-    Currently provides only the publish_topic tool.
     """
-    return [PUBLISH_TOPIC_TOOL]
+    return [
+        PUBLISH_TOPIC_TOOL,
+        LIST_TOPICS_TOOL,
+        LIST_ACTIONS_TOOL,
+        LIST_SERVICES_TOOL,
+        GET_TOPIC_INFO_TOOL,
+        PUBLISH_ACTION_TOOL,
+        CANCEL_ACTION_TOOL,
+        PUBLISH_SERVICE_TOOL,
+    ]
 
 
 """
-6. Tool Call Handler
+4. Tool Call Handler
 
 Set up the request handler for tool calls
 
 Examples:
   Request: { name: "publish_topic", arguments: {topic: "/cmd_vel", ...} } → Publishes message
-  Request: { name: "publish_topic", arguments: {} } → Error: Missing required arguments
+  Request: { name: "list_topics", arguments: {} } → Lists available topics
   Request: { name: "unknown_tool" } → Error: "Unknown tool: unknown_tool"
-  Connection error → Error: "Failed to publish to topic..."
+  Connection error → Error: "Failed to..."
 
-6. ツール呼び出しハンドラー
+4. ツール呼び出しハンドラー
 
 ツール呼び出しのリクエストハンドラーを設定
 
 例:
   リクエスト: { name: "publish_topic", arguments: {topic: "/cmd_vel", ...} } → メッセージを公開
-  リクエスト: { name: "publish_topic", arguments: {} } → エラー: 必須引数が不足
+  リクエスト: { name: "list_topics", arguments: {} } → 利用可能なトピックをリスト
   リクエスト: { name: "unknown_tool" } → エラー: "Unknown tool: unknown_tool"
-  接続エラー → エラー: "Failed to publish to topic..."
+  接続エラー → エラー: "Failed to..."
 """
 
 
@@ -255,11 +171,11 @@ async def call_tool(name: str, arguments: dict) -> list:
     """
     Handle tool execution requests.
 
-    Process tool calls from MCP clients and publish messages to ROS topics.
+    Process tool calls from MCP clients and execute various ROS operations.
 
     Args:
         name: The name of the tool to execute
-        arguments: Tool-specific arguments (topic, message_type, message)
+        arguments: Tool-specific arguments
 
     Returns:
         A list containing the tool execution result or error message
@@ -278,7 +194,7 @@ async def call_tool(name: str, arguments: dict) -> list:
                 }
             ]
 
-        result = await publish_topic(topic, message_type, message)
+        result = await publish_topic(ros, topic, message_type, message)
         is_error = result.startswith("Failed")
 
         return [
@@ -288,6 +204,227 @@ async def call_tool(name: str, arguments: dict) -> list:
                 "isError": is_error,
             }
         ]
+
+    elif name == "list_topics":
+        result = await list_topics(ros)
+
+        if result["success"]:
+            # Format topics list for display
+            topics_text = f"Found {result['count']} topics:\n"
+            for topic in result["topics"]:
+                topics_text += f"  - {topic['name']} [{topic['type']}]\n"
+
+            return [
+                {
+                    "type": "text",
+                    "text": topics_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
+
+    elif name == "list_actions":
+        result = await list_actions(ros)
+
+        if result["success"]:
+            # Format actions list for display
+            actions_text = f"Found {result['count']} action servers:\n"
+            for action in result["actions"]:
+                actions_text += f"  - {action['name']}\n"
+
+            return [
+                {
+                    "type": "text",
+                    "text": actions_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
+
+    elif name == "list_services":
+        result = await list_services(ros)
+
+        if result["success"]:
+            # Format services list for display
+            services_text = f"Found {result['count']} services:\n"
+            for service in result["services"]:
+                services_text += f"  - {service['name']}\n"
+
+            return [
+                {
+                    "type": "text",
+                    "text": services_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
+
+    elif name == "get_topic_info":
+        topic = arguments.get("topic")
+
+        if not topic:
+            return [
+                {
+                    "type": "text",
+                    "text": "Error: Missing required argument 'topic'.",
+                    "isError": True,
+                }
+            ]
+
+        result = await get_topic_info(ros, topic)
+
+        if result["success"]:
+            # Format topic info for display
+            info_text = f"Topic: {result['topic']}\n"
+            info_text += f"Type: {result['type']}\n"
+            info_text += f"Publishers: {result['publisher_count']}\n"
+            if result["publishers"]:
+                for pub in result["publishers"]:
+                    info_text += f"  - {pub}\n"
+            info_text += f"Subscribers: {result['subscriber_count']}\n"
+            if result["subscribers"]:
+                for sub in result["subscribers"]:
+                    info_text += f"  - {sub}\n"
+
+            return [
+                {
+                    "type": "text",
+                    "text": info_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
+
+    elif name == "publish_action":
+        action_name = arguments.get("action_name")
+        action_type = arguments.get("action_type")
+        goal = arguments.get("goal")
+        timeout = arguments.get("timeout", 30.0)
+
+        if not all([action_name, action_type, goal]):
+            return [
+                {
+                    "type": "text",
+                    "text": "Error: Missing required arguments. Please provide 'action_name', 'action_type', and 'goal'.",
+                    "isError": True,
+                }
+            ]
+
+        result = await publish_action(ros, action_name, action_type, goal, timeout)
+
+        if result["success"]:
+            # Format action result for display
+            result_text = f"Action completed successfully!\n"
+            result_text += f"Goal ID: {result['goal_id']}\n"
+            result_text += f"Result: {result['result']}\n"
+            if result["feedback"]:
+                result_text += f"Feedback received: {len(result['feedback'])} messages"
+
+            return [
+                {
+                    "type": "text",
+                    "text": result_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
+
+    elif name == "cancel_action":
+        action_name = arguments.get("action_name")
+        goal_id = arguments.get("goal_id")
+
+        if not action_name:
+            return [
+                {
+                    "type": "text",
+                    "text": "Error: Missing required argument 'action_name'.",
+                    "isError": True,
+                }
+            ]
+
+        result = await cancel_action(ros, action_name, goal_id)
+
+        return [
+            {
+                "type": "text",
+                "text": result["message"] if result["success"] else f"Error: {result['error']}",
+                "isError": not result["success"],
+            }
+        ]
+
+    elif name == "publish_service":
+        service = arguments.get("service")
+        service_type = arguments.get("service_type")
+        request = arguments.get("request")
+        timeout = arguments.get("timeout", 10.0)
+
+        if not all([service, service_type, request]):
+            return [
+                {
+                    "type": "text",
+                    "text": "Error: Missing required arguments. Please provide 'service', 'service_type', and 'request'.",
+                    "isError": True,
+                }
+            ]
+
+        result = await publish_service(ros, service, service_type, request, timeout)
+
+        if result["success"]:
+            # Format service response for display
+            response_text = f"Service call successful!\n"
+            response_text += f"Service: {result['service']}\n"
+            response_text += f"Response: {result['response']}"
+
+            return [
+                {
+                    "type": "text",
+                    "text": response_text.strip(),
+                    "isError": False,
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Error: {result['error']}",
+                    "isError": True,
+                }
+            ]
 
     else:
         return [
@@ -300,7 +437,7 @@ async def call_tool(name: str, arguments: dict) -> list:
 
 
 """
-7. Server Startup Function
+5. Server Startup Function
 
 Initialize and run the MCP server with stdio transport
 
@@ -309,7 +446,7 @@ Examples:
   Transport: stdio (communicates via stdin/stdout)
   Connection error → Process exits with appropriate error
 
-7. サーバー起動関数
+5. サーバー起動関数
 
 stdioトランスポートでMCPサーバーを初期化して実行
 
@@ -335,7 +472,7 @@ async def run_server():
 
 
 """
-8. Server Execution
+6. Server Execution
 
 Execute the server when run as a script
 
@@ -345,7 +482,7 @@ Examples:
   With environment: ROSBRIDGE_HOST=localhost ROSBRIDGE_PORT=9090 python server.py
   Fatal error → Exits with appropriate error code
 
-8. サーバー実行
+6. サーバー実行
 
 スクリプトとして実行されたときにサーバーを実行
 
@@ -364,7 +501,3 @@ def main():
     Starts the MCP server and handles any startup errors.
     """
     asyncio.run(run_server())
-
-
-if __name__ == "__main__":
-    main()
