@@ -2,14 +2,13 @@
 
 # Rosbridge MCP Server
 
-Model Context Protocol (MCP) サーバーで、rosbridge を介して ROS トピックにメッセージを公開するツールを提供します。これは MCP サーバーと ROS の統合を示す Python 実装です。
+rosbridge WebSocket 接続を介して ROS（Robot Operating System）と包括的に連携するための Model Context Protocol（MCP）サーバーです。この Python 実装により、AI アシスタントが標準化されたインターフェースを通じて ROS システムを監視・制御できます。
 
 ## 機能
 
-- rosbridge WebSocket を介して任意の ROS トピックにメッセージを公開
-- 環境変数による設定可能な rosbridge 接続
-- 任意の ROS メッセージタイプをサポート
-- シンプルなツール: `publish_topic`
+- **トピック操作**: トピック一覧、トピック情報取得、メッセージ公開
+- **サービス操作**: サービス一覧と ROS サービス呼び出し
+- **アクション操作**: アクションサーバー一覧、ゴール送信、アクションキャンセル
 
 ## 使用方法
 
@@ -84,9 +83,25 @@ rosbridge サーバーのポート（デフォルト: "9090"）
 
 ## 利用可能なツール
 
-### `publish_topic`
+### トピック操作
 
-ROS トピックにメッセージを公開
+#### `list_topics`
+
+利用可能なすべての ROS トピックとその型を一覧表示します。
+
+パラメータは不要です。
+
+#### `get_topic_info`
+
+パブリッシャーやサブスクライバーを含む、特定のトピックの詳細情報を取得します。
+
+パラメータ：
+
+- `topic`（必須）：ROS トピック名（例: "/cmd_vel"）
+
+#### `publish_topic`
+
+ROS トピックにメッセージを公開します。
 
 パラメータ：
 
@@ -94,7 +109,7 @@ ROS トピックにメッセージを公開
 - `message_type`（必須）：ROS メッセージタイプ（例: "geometry_msgs/Twist"）
 - `message`（必須）：JSON オブジェクトとしてのメッセージデータ
 
-使用例：
+例：
 
 ```json
 {
@@ -109,6 +124,92 @@ ROS トピックにメッセージを公開
   }
 }
 ```
+
+### サービス操作
+
+#### `list_services`
+
+利用可能なすべての ROS サービスを一覧表示します。
+
+パラメータは不要です。
+
+#### `publish_service`
+
+ROS サービスを呼び出します。
+
+パラメータ：
+
+- `service`（必須）：ROS サービス名（例: "/add_two_ints"）
+- `service_type`（必須）：ROS サービスタイプ（例: "rospy_tutorials/AddTwoInts"）
+- `request`（必須）：JSON オブジェクトとしてのサービスリクエストデータ
+- `timeout`（オプション）：タイムアウト秒数（デフォルト: 10）
+
+例：
+
+```json
+{
+  "name": "publish_service",
+  "arguments": {
+    "service": "/add_two_ints",
+    "service_type": "rospy_tutorials/AddTwoInts",
+    "request": {
+      "a": 10,
+      "b": 20
+    }
+  }
+}
+```
+
+### アクション操作
+
+#### `list_actions`
+
+利用可能なすべての ROS アクションサーバーを一覧表示します。
+
+パラメータは不要です。
+
+#### `publish_action`
+
+ROS アクションサーバーにゴールを送信します。
+
+パラメータ：
+
+- `action_name`（必須）：ROS アクションサーバー名（例: "/move_base"）
+- `action_type`（必須）：ROS アクションタイプ（例: "move_base_msgs/MoveBaseAction"）
+- `goal`（必須）：JSON オブジェクトとしてのゴールデータ
+- `timeout`（オプション）：結果待機のタイムアウト秒数（デフォルト: 30）
+
+例：
+
+```json
+{
+  "name": "publish_action",
+  "arguments": {
+    "action_name": "/move_base",
+    "action_type": "move_base_msgs/MoveBaseAction",
+    "goal": {
+      "target_pose": {
+        "header": {
+          "frame_id": "map"
+        },
+        "pose": {
+          "position": { "x": 1.0, "y": 2.0, "z": 0.0 },
+          "orientation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+        }
+      }
+    }
+  }
+}
+```
+
+#### `cancel_action`
+
+実行中の ROS アクションゴールをキャンセルします。
+
+パラメータ：
+
+- `action_name`（必須）：ROS アクションサーバー名（例: "/move_base"）
+- `goal_id`（オプション）：キャンセルする特定のゴール ID（指定しない場合は全てキャンセル）
 
 ## 開発
 
@@ -271,7 +372,17 @@ rosbridge-mcp-server/
 ├── src/
 │   ├── __init__.py              # パッケージ初期化
 │   ├── __main__.py              # メインエントリーポイント
-│   └── server.py                # サーバー実装
+│   ├── server.py                # サーバー実装
+│   └── tools/                   # ツール実装
+│       ├── __init__.py          # ツールモジュール初期化
+│       ├── list_topics.py       # トピック一覧ツール
+│       ├── list_actions.py      # アクション一覧ツール
+│       ├── list_services.py     # サービス一覧ツール
+│       ├── get_topic_info.py    # トピック情報取得ツール
+│       ├── publish_topic.py     # トピック公開ツール
+│       ├── publish_action.py    # アクション公開ツール
+│       ├── publish_service.py   # サービス公開ツール
+│       └── cancel_action.py     # アクションキャンセルツール
 ├── pyproject.toml               # プロジェクト設定
 ├── uv.lock                      # 依存関係ロックファイル
 ├── .github/

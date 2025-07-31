@@ -2,14 +2,13 @@
 
 # Rosbridge MCP Server
 
-A Model Context Protocol (MCP) server that provides tools to publish messages to ROS topics via rosbridge. This is a Python implementation demonstrating ROS integration with MCP servers.
+A Model Context Protocol (MCP) server that provides comprehensive tools for interacting with ROS (Robot Operating System) via rosbridge WebSocket connection. This Python implementation enables AI assistants to monitor and control ROS systems through a standardized interface.
 
 ## Features
 
-- Publish messages to any ROS topic via rosbridge WebSocket
-- Configurable rosbridge connection via environment variables
-- Support for any ROS message type
-- Simple tool: `publish_topic`
+- **Topic Operations**: List topics, get topic info, and publish messages
+- **Service Operations**: List services and call ROS services
+- **Action Operations**: List action servers, send goals, and cancel actions
 
 ## Usage
 
@@ -84,9 +83,25 @@ Standard rosbridge WebSocket port is 9090.
 
 ## Available Tools
 
-### `publish_topic`
+### Topic Operations
 
-Publish a message to a ROS topic
+#### `list_topics`
+
+List all available ROS topics with their types.
+
+No parameters required.
+
+#### `get_topic_info`
+
+Get detailed information about a specific topic including publishers and subscribers.
+
+Parameters:
+
+- `topic` (required): The ROS topic name (e.g., "/cmd_vel")
+
+#### `publish_topic`
+
+Publish a message to a ROS topic.
 
 Parameters:
 
@@ -94,7 +109,7 @@ Parameters:
 - `message_type` (required): The ROS message type (e.g., "geometry_msgs/Twist")
 - `message` (required): The message data as a JSON object
 
-Example usage:
+Example:
 
 ```json
 {
@@ -109,6 +124,92 @@ Example usage:
   }
 }
 ```
+
+### Service Operations
+
+#### `list_services`
+
+List all available ROS services.
+
+No parameters required.
+
+#### `publish_service`
+
+Call a ROS service.
+
+Parameters:
+
+- `service` (required): The ROS service name (e.g., "/add_two_ints")
+- `service_type` (required): The ROS service type (e.g., "rospy_tutorials/AddTwoInts")
+- `request` (required): The service request data as a JSON object
+- `timeout` (optional): Timeout in seconds (default: 10)
+
+Example:
+
+```json
+{
+  "name": "publish_service",
+  "arguments": {
+    "service": "/add_two_ints",
+    "service_type": "rospy_tutorials/AddTwoInts",
+    "request": {
+      "a": 10,
+      "b": 20
+    }
+  }
+}
+```
+
+### Action Operations
+
+#### `list_actions`
+
+List all available ROS action servers.
+
+No parameters required.
+
+#### `publish_action`
+
+Send a goal to a ROS action server.
+
+Parameters:
+
+- `action_name` (required): The ROS action server name (e.g., "/move_base")
+- `action_type` (required): The ROS action type (e.g., "move_base_msgs/MoveBaseAction")
+- `goal` (required): The goal data as a JSON object
+- `timeout` (optional): Timeout in seconds to wait for result (default: 30)
+
+Example:
+
+```json
+{
+  "name": "publish_action",
+  "arguments": {
+    "action_name": "/move_base",
+    "action_type": "move_base_msgs/MoveBaseAction",
+    "goal": {
+      "target_pose": {
+        "header": {
+          "frame_id": "map"
+        },
+        "pose": {
+          "position": { "x": 1.0, "y": 2.0, "z": 0.0 },
+          "orientation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+        }
+      }
+    }
+  }
+}
+```
+
+#### `cancel_action`
+
+Cancel a running ROS action goal.
+
+Parameters:
+
+- `action_name` (required): The ROS action server name (e.g., "/move_base")
+- `goal_id` (optional): The specific goal ID to cancel (cancels all if not provided)
 
 ## Development
 
@@ -271,7 +372,17 @@ rosbridge-mcp-server/
 ├── src/
 │   ├── __init__.py              # Package initialization
 │   ├── __main__.py              # Main entry point
-│   └── server.py                # Server implementation
+│   ├── server.py                # Server implementation
+│   └── tools/                   # Tool implementations
+│       ├── __init__.py          # Tools module initialization
+│       ├── list_topics.py       # List topics tool
+│       ├── list_actions.py      # List actions tool
+│       ├── list_services.py     # List services tool
+│       ├── get_topic_info.py    # Get topic info tool
+│       ├── publish_topic.py     # Publish topic tool
+│       ├── publish_action.py    # Publish action tool
+│       ├── publish_service.py   # Publish service tool
+│       └── cancel_action.py     # Cancel action tool
 ├── pyproject.toml               # Project configuration
 ├── uv.lock                      # Dependency lock file
 ├── .github/
@@ -279,7 +390,9 @@ rosbridge-mcp-server/
 │       └── pypi-publish.yml     # PyPI publish workflow with Trusted Publishers
 ├── scripts/
 │   └── release.sh               # Release automation script
-├── README.md                    # This file
+├── docs/
+│   ├── README.md                # English documentation
+│   └── README_ja.md             # Japanese documentation
 └── .gitignore                   # Git ignore file
 ```
 
