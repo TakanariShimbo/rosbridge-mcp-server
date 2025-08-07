@@ -9,6 +9,7 @@ from typing import Any
 import uuid
 
 import roslibpy
+import roslibpy.actionlib
 from mcp.types import Tool
 
 
@@ -41,13 +42,7 @@ PUBLISH_ACTION_TOOL = Tool(
 )
 
 
-async def publish_action(
-    ros: roslibpy.Ros, 
-    action_name: str, 
-    action_type: str, 
-    goal: dict[str, Any],
-    timeout: float = 30.0
-) -> dict[str, Any]:
+async def publish_action(ros: roslibpy.Ros, action_name: str, action_type: str, goal: dict[str, Any], timeout: float = 30.0) -> dict[str, Any]:
     """
     Send a goal to a ROS action server.
 
@@ -63,62 +58,47 @@ async def publish_action(
     """
     try:
         # Create action client
-        action_client = roslibpy.ActionClient(
-            ros,
-            action_name,
-            action_type
-        )
-        
+        action_client = roslibpy.actionlib.ActionClient(ros, action_name, action_type)
+
         # Generate a unique goal ID
         goal_id = str(uuid.uuid4())
-        
+
         # Create futures for tracking the action
         result_future = asyncio.Future()
         feedback_messages = []
-        
+
         def handle_result(result):
-            result_future.set_result({
-                'success': True,
-                'result': result,
-                'goal_id': goal_id,
-                'feedback': feedback_messages
-            })
-        
+            result_future.set_result({"success": True, "result": result, "goal_id": goal_id, "feedback": feedback_messages})
+
         def handle_feedback(feedback):
             feedback_messages.append(feedback)
-        
+
         def handle_failure(error):
-            result_future.set_result({
-                'success': False,
-                'error': str(error),
-                'goal_id': goal_id,
-                'feedback': feedback_messages
-            })
-        
-        # Send the goal
-        goal_message = roslibpy.Goal(action_client, goal)
-        goal_message.on('result', handle_result)
-        goal_message.on('feedback', handle_feedback)
-        goal_message.on('status', lambda status: None)  # Status updates
-        
+            result_future.set_result({"success": False, "error": str(error), "goal_id": goal_id, "feedback": feedback_messages})
+
+        # Create goal message with roslibpy.Message
+        goal_msg = roslibpy.Message(goal)
+
+        # Create and configure the goal
+        goal_handle = roslibpy.actionlib.Goal(action_client, goal_msg)
+        goal_handle.on("result", handle_result)
+        goal_handle.on("feedback", handle_feedback)
+        goal_handle.on("status", lambda status: None)  # Status updates
+        goal_handle.on("timeout", lambda: handle_failure("Goal timeout"))
+
         # Send goal and wait for result
-        goal_message.send()
-        
+        goal_handle.send()
+
         try:
             result = await asyncio.wait_for(result_future, timeout=timeout)
             return result
         except asyncio.TimeoutError:
             # Cancel the goal on timeout
-            goal_message.cancel()
-            return {
-                'success': False,
-                'error': f'Timeout waiting for action result after {timeout} seconds',
-                'goal_id': goal_id,
-                'feedback': feedback_messages
-            }
-        
+            goal_handle.cancel()
+            return {"success": False, "error": f"Timeout waiting for action result after {timeout} seconds", "goal_id": goal_id, "feedback": feedback_messages}
+        finally:
+            # Clean up the action client
+            action_client.dispose()
+
     except Exception as e:
-        return {
-            'success': False,
-            'error': f'Failed to send action goal: {str(e)}'
-        }
+        return {"success": False, "error": f"Failed to send action goal: {str(e)}"}
