@@ -63,7 +63,7 @@ async def publish_action(
     """
     try:
         # Create action client
-        action_client = roslibpy.actionlib.ActionClient(
+        action_client = roslibpy.ActionClient(
             ros,
             action_name,
             action_type
@@ -96,7 +96,7 @@ async def publish_action(
             })
         
         # Send the goal
-        goal_message = roslibpy.actionlib.Goal(action_client, goal)
+        goal_message = roslibpy.Goal(action_client, goal)
         goal_message.on('result', handle_result)
         goal_message.on('feedback', handle_feedback)
         goal_message.on('status', lambda status: None)  # Status updates
